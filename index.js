@@ -68,7 +68,9 @@ wira.prototype.schedule = function schedule(jobs, queue,  cb){
     //create job with or without given ID
     if(job.hasOwnProperty('id')){
 
-      ref.child(job.id).set( job, function(){
+      var r = ref.child(job.id);
+      delete job.id;
+      r.set( job, function(){
         //next job...
         next();
       });
@@ -83,7 +85,7 @@ wira.prototype.schedule = function schedule(jobs, queue,  cb){
 
     }
 
-  });
+  }, cb );
 
 };
 

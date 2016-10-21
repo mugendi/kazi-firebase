@@ -2,7 +2,7 @@
 const wira = require('./index')('./config/auth.json');
 
 
-var queue = 'bull';
+var queue = 'kazi';
 
 var jobs = [
   { id: 1, data : {'id': 36535,'foo': 'bar'}},
