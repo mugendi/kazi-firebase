@@ -18,7 +18,7 @@ var jobs = [
 
 //schedule tasks
 kazi.schedule(jobs, queue,  function(){
-  console.log('ss;lj sn');
+  console.log('Scheduling Finished!');
 });
 
 //run tasks
@@ -37,7 +37,7 @@ kazi.run( queue, function(data, progress, resolve, reject) {
 
   //Alternatively we could reject job with errors
   //reject(errorMessage);
-  
+
 });
 
 ```
