@@ -12,7 +12,7 @@ var jobs = [
 
 //schedule tasks
 kazi.schedule(jobs, queue,  function(){
-  console.log('ss;lj sn');
+  console.log('Scheduling Finished!');
 });
 
 //run tasks
