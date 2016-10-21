@@ -1,4 +1,10 @@
-//jshint -W104
+# Kazi (Swahili for work) - Firebase
+After several attempts to write a scalable job queue, I came across the awesome firebase package [firebase-queue](https://github.com/firebase/firebase-queue)
+
+I therefore wrote this wrapper package that should enable you schedule and run jobs in a breeze!
+
+```javascript
+
 const kazi = require('./index')('./config/auth.json');
 
 var queue = 'kazi';
@@ -18,7 +24,8 @@ kazi.schedule(jobs, queue,  function(){
 //run tasks
 kazi.run( queue, function(data, progress, resolve, reject) {
 
-  console.log(JSON.stringify(data,0,4));
+  //Execute Job
+  //... ... ...
 
   // report current progress
   progress(100);
@@ -28,4 +35,13 @@ kazi.run( queue, function(data, progress, resolve, reject) {
     resolve();
   }, 10000);
 
+  //Alternatively we could reject job with errors
+  //reject(errorMessage);
+  
 });
+
+```
+
+That is All!
+
+Read the *firebase-queue* documentation to learn how to throw errors and other functions...
