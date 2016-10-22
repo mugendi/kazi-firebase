@@ -5,8 +5,12 @@ const Queue = require('firebase-queue');
 const firebase = require('firebase');
 const async = require('async');
 
+var kazi_server = {};
+
 //initialize
-var wira = function (configFile){
+var kazi = function (configFile){
+
+  var self = this;
 
   // set config file
   if(!configFile || typeof configFile !== 'string'){
@@ -45,43 +49,69 @@ var wira = function (configFile){
     databaseURL: 'https://' + config.project_id+'.firebaseio.com' //Database URL
   });
 
-  return this;
+  // console.log(this.schedule)
+  kazi_server = require('./server')({kazi:this});
+  return self;
 
 };
 
 
 //SCHEDULE Jobs
-wira.prototype.schedule = function schedule(jobs, queue,  cb){
+kazi.prototype.schedule = function schedule(jobs, queue,  cb){
+
   //default queue
   queue = queue || 'queue' ;
   //only accept certain job formats...
   if(!jobs || typeof jobs !== 'object'){ throw new Error("Job must be an object!"); }
-  //Database Reference
-  var ref = firebase.database().ref( queue + '/tasks' );
+
 
   //add all jobs...
   async.eachLimit(arrify(jobs), 1, function(job, next){
 
-    //add job metadata
-    job.meta = { updated : new Date().getTime() };
+    //change queue if set..
+    queue = job.queue || queue;
+    //delete queue
+    delete job.queue;
+    //Database Reference
+    var ref = firebase.database().ref( queue + '/tasks' );
 
-    //create job with or without given ID
-    if(job.hasOwnProperty('id')){
-
-      var r = ref.child(job.id);
-      delete job.id;
-      r.set( job, function(){
-        //next job...
+    //if job has a delay...
+    if(job.hasOwnProperty('delay')){
+      //
+      kazi_server.delayJob(job, queue, function(err,res){
+        // console.log(job)
         next();
       });
 
     }
     else{
 
-      ref.push( job, function(){
-        //next job...
-        next();
-      });
+      //add job metadata
+      job.meta = {
+          queue : queue,
+          updated : new Date().getTime()
+        };
+
+      // console.log(job);
+      //create job with or without given ID
+      if(job.hasOwnProperty('id')){
+
+        var r = ref.child(job.id);
+        delete job.id;
+        r.set( job, function(){
+          //next job...
+          next();
+        });
+
+      }
+      else{
+
+        ref.push( job, function(){
+          //next job...
+          next();
+        });
+
+      }
 
     }
 
@@ -91,7 +121,7 @@ wira.prototype.schedule = function schedule(jobs, queue,  cb){
 
 
 //RUN Jobs...
-wira.prototype.run = function run(queue, cb, options){
+kazi.prototype.run = function run(queue, cb, options){
 
   queue = queue || 'queue' ;
 
@@ -135,5 +165,5 @@ function hasAllProperties(obj, properties){
 
 //export
 module.exports = function(configFile){
-  return new wira(configFile);
+  return new kazi(configFile);
 };
