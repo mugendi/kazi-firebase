@@ -10,15 +10,19 @@ const md5 = require('md5');
 const path = require('path');
 
 
-const redisDefaultoptions = require(path.join(__dirname,'config','redis.json'));
-const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
-client.select(redisDefaultoptions.redisDB);
 
-var firebaseConfig = path.join(__dirname,'config','firebase.json');
+
 var kazi_server = {};
 
 //initialize
-var kazi = function (){
+var kazi = function (config_path){
+
+  config_path = config_path || path.join(__dirname,'config');
+
+  const redisDefaultoptions = require(path.join( config_path,'redis.json'));
+  const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
+  client.select(redisDefaultoptions.redisDB);
+  var firebaseConfig = path.join( config_path,'firebase.json');
 
   var self = this;
   var config = {};
