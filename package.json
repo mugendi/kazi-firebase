@@ -1,6 +1,6 @@
 {
   "name": "kazi-firebase",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Simple Job Queue written around firebase-queue",
   "main": "index.js",
   "scripts": {
