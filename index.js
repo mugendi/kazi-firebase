@@ -7,6 +7,8 @@ const async = require('async');
 
 const redis = require("redis");
 const md5 = require('md5');
+
+
 const redisDefaultoptions = require('./config/redis.json');
 const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
 client.select(redisDefaultoptions.redisDB);
