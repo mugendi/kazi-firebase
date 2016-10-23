@@ -1,45 +1,69 @@
 //jshint -W104
 const redis = require("redis");
 const md5 = require('md5');
+const Queue = require('firebase-queue');
+const firebase = require('firebase');
+
+var redisDefaultoptions = require('./config/redis.json');
+var firebaseConfig = './config/firebase.json';
+
+const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
+client.select(redisDefaultoptions.redisDB);
+
+const subscriber = redis.createClient( redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
+subscriber.select(redisDefaultoptions.redisDB);
 
 
-var kazi_server = function(options){
+//Kazi Server to manage delayed jobs
+(function listen(){
   var self = this;
 
-  var defaults = {
-    redisPort : 6379,
-    redisIP :  '127.0.0.1',
-    redisDB :  0,
-    redisHKey :  '__KAZI:DELAYED:JOBS__'
-  };
+  self.client = client;
 
   //extend...
-  options = self.options = Object.assign(defaults, options);
+  var options = self.options = Object.assign(redisDefaultoptions, options);
 
-  self.client = redis.createClient(options.redisPort, options.redisIP );
-  self.client.select(options.redisDB);
+  var config = require(firebaseConfig);
 
-  self.subscriber = redis.createClient( options.redisPort, options.redisIP );
-  self.subscriber.select(options.redisDB);
+  //initialize firebase
+  firebase.initializeApp({
+    serviceAccount: firebaseConfig, //JSON File
+    databaseURL: 'https://' + config.project_id+'.firebaseio.com' //Database URL
+  });
+
 
   //Keyspace Events
-  self.subscriber.on('pmessage', function(pattern, channel, key) {
+  subscriber.on('pmessage', function(pattern, channel, key) {
       // console.log( pattern, channel, key);
+      console.log("Scheduling delayed job: " + key);
 
-      self.client.hget(options.redisHKey, key, function(err,res){
+      client.hget(options.redisHKey, key, function(err,res){
         try {
 
           //parse job
           var job = JSON.parse(res);
           //delete Hash Key...
-          self.client.hdel(self.options.redisHKey, key );
+          client.hdel(self.options.redisHKey, key );
 
           var queue = job.queue;
           delete job.queue;
 
-          //call firebase scheduler...
-          // console.log(options.kazi.schedule, job);
-          options.kazi.schedule([job], queue);
+          //set ref
+          var ref = firebase.database().ref( queue + '/tasks' );
+
+          //create job with or without given ID
+          if(job.hasOwnProperty('id')){
+
+            var r = ref.child(job.id);
+            delete job.id;
+            r.set( job, function(){ });
+
+          }
+          else{
+
+            ref.push( job, function(){ });
+
+          }
 
         } catch (e) {
 
@@ -49,30 +73,6 @@ var kazi_server = function(options){
 
   }).psubscribe( "__keyevent@" + options.redisDB + "__:expired");
 
+  console.log("Server Listening...");
 
-}
-
-//delay Job
-kazi_server.prototype.delayJob = function delayJob(job, queue, cb){
-  var self = this;
-
-  //remove delay...
-  var delay = job.delay;
-  delete job.delay;
-  //add queue
-  job.queue = queue;
-
-  var jobStr = JSON.stringify(job);
-  var key = job.id || md5(jobStr);
-  var multi = self.client.multi();
-
-  multi.set( key, 1 )
-      .hset(self.options.redisHKey, key, jobStr)
-      .expire(key, delay )
-      .exec(cb);
-
-};
-
-module.exports = function(options){
-  return new kazi_server(options);
-};
+}());

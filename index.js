@@ -5,26 +5,20 @@ const Queue = require('firebase-queue');
 const firebase = require('firebase');
 const async = require('async');
 
+const redis = require("redis");
+const md5 = require('md5');
+const redisDefaultoptions = require('./config/redis.json');
+const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
+client.select(redisDefaultoptions.redisDB);
+
+var firebaseConfig = './config/firebase.json';
 var kazi_server = {};
 
 //initialize
-var kazi = function (configFile){
+var kazi = function (){
 
   var self = this;
-
-  // set config file
-  if(!configFile || typeof configFile !== 'string'){
-    throw new error('Path to Firebase Configuration File must be set!');
-  }
-
-  //config
-  try {
-    var config = require(configFile);
-    //check file
-    if(typeof config !== 'object'){ throw new Error ( 'Configuration File missing or not valid JSON'); }
-  } catch (e) {
-    throw new Error ( 'Config File must be of JSON type');
-  }
+  var config = {};
 
   //validate keys
   var propsRequired = [
@@ -40,17 +34,24 @@ var kazi = function (configFile){
   ];
 
 
-  //check properties
-  hasAllProperties(config, propsRequired );
+  //config
+  try {
+    config = require(firebaseConfig);
+    //check properties
+    hasAllProperties(config, propsRequired );
+
+    //check file
+    if(typeof config !== 'object'){ throw new Error ( 'Configuration File missing or not valid JSON'); }
+  } catch (e) {
+    throw new Error ( 'Config File must be of JSON type');
+  }
 
   //initialize app
   firebase.initializeApp({
-    serviceAccount: configFile, //JSON File
-    databaseURL: 'https://' + config.project_id+'.firebaseio.com' //Database URL
+    serviceAccount: firebaseConfig, //JSON File
+    databaseURL: 'https://' + config.project_id + '.firebaseio.com' //Database URL
   });
 
-  // console.log(this.schedule)
-  kazi_server = require('./server')({kazi:this});
   return self;
 
 };
@@ -78,7 +79,7 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
     //if job has a delay...
     if(job.hasOwnProperty('delay')){
       //
-      kazi_server.delayJob(job, queue, function(err,res){
+      delayJob(job, queue, function(err,res){
         // console.log(job)
         next();
       });
@@ -120,6 +121,31 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
 };
 
 
+
+
+//delay Job
+function delayJob(job, queue, cb){
+  var self = this;
+
+  //remove delay...
+  var delay = job.delay;
+  delete job.delay;
+  //add queue
+  job.queue = queue;
+
+
+  var jobStr = JSON.stringify(job);
+  var key = job.id || md5(jobStr);
+  var multi = client.multi();
+
+  multi.set( key, 1 )
+      .hset(redisDefaultoptions.redisHKey, key, jobStr)
+      .expire(key, delay )
+      .exec(cb);
+
+}
+
+
 //RUN Jobs...
 kazi.prototype.run = function run(queue, cb, options){
 
@@ -153,7 +179,6 @@ function hasAllProperties(obj, properties){
 
     if ( !obj.hasOwnProperty(prop) ){
       throw new Error ( 'Incorrectly formatted Firebase Configuration File: Requires ' + prop + ' Property.');
-      return false;
     }
 
   });

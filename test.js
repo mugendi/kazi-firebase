@@ -1,5 +1,7 @@
 //jshint -W104
-const kazi = require('./index')('./config/auth.json');
+const kazi = require('./index')('./config/firebase.json');
+
+process.ppid = 637;
 
 // console.log(kazi)
 
@@ -9,7 +11,7 @@ var queue = 'kazi';
 var jobs = [
   {
     id: 1, //job has a defined ID
-    delay : 90, //job will be delayed for 90 seconds...
+    delay : 10, //job will be delayed for 90 seconds...
     data : {'id': 36535,'foo': 'bar'}
   },
   {
