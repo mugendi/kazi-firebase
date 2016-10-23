@@ -1,0 +1,6 @@
+{
+  "redisPort" : 6379,
+  "redisIP" :  "127.0.0.1",
+  "redisDB" :  0,
+  "redisHKey" :  "__KAZI:DELAYED:JOBS__"
+}

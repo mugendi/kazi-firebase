@@ -1,4 +1,5 @@
 node_modules
-config
+config/firebase.json
+config/redis.json
 *.ico
 *.ini

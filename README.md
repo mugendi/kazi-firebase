@@ -78,6 +78,14 @@ This wrapper introduces:
 
 This surely makes the awesome firebase-queue is even better! No?
 
+## Remember to Fire Up Your Server
+If you are planning to use delayed tasks, then remember to start your server (```server.js```). This feature is missing in *firebase-queue* and the best best way I could think of implementing it is via redis ```EXPIRY``` command and using *keyspace notifications* to trigger the inserts. So, it goes without saying that you need a server/process of sorts running to subscribe to the redis nitifications. Fire it up, probably use *PM2* to ensure it keeps running.
+
+## One Last thing...that Configuration
+There is a *config* folder within *kazi-firebase* which you shoud ensure contains two files:
+- ***firebase.json*** : The file that contains your firebase authentication details from firebase.
+- ***redis.json*** : Redis Configuration file.
+
 ***Enjoy!***
 
 ***PS:*** *Read the [firebase-queue documentation](https://github.com/firebase/firebase-queue/blob/master/docs/guide.md) to get a basic idea of how this works...*
