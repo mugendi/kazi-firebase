@@ -7,13 +7,14 @@ const async = require('async');
 
 const redis = require("redis");
 const md5 = require('md5');
+const path = require('path');
 
 
-const redisDefaultoptions = require('./config/redis.json');
+const redisDefaultoptions = require(path.join(__dirname,'config','redis.json'));
 const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
 client.select(redisDefaultoptions.redisDB);
 
-var firebaseConfig = './config/firebase.json';
+var firebaseConfig = path.join(__dirname,'config','firebase.json');
 var kazi_server = {};
 
 //initialize

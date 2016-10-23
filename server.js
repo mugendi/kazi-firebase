@@ -2,9 +2,10 @@
 const redis = require("redis");
 const Queue = require('firebase-queue');
 const firebase = require('firebase');
+const path = require('path');
 
-var redisDefaultoptions = require('./config/redis.json');
-var firebaseConfig = './config/firebase.json';
+var redisDefaultoptions = require(path.join(__dirname,'config','redis.json'));
+var firebaseConfig = path.join(__dirname,'config','firebase.json');
 
 const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
 client.select(redisDefaultoptions.redisDB);
