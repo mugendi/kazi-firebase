@@ -6,7 +6,7 @@ I therefore wrote this wrapper package that should enable you schedule and run j
 
 ```javascript
 
-const kazi = require('./index')('./config/auth.json');
+const kazi = require('./index')('PATH-TO-YOUR-CONFIG-FILES');
 
 var queue = 'kazi';
 
@@ -62,7 +62,7 @@ As I stated, I have attempted to write job queues in the past and here are the t
 
 - **Worker/Scheduler Independence** : I wanted a system where workers are 100% independent of schedulers. There are many queues that support this.
 
-- **Fault Tolerance** : firebase-queue thanfully is written to be fault tolerant.
+- **Fault Tolerance** : firebase-queue thankfully is written to be fault tolerant.
 
 - **Job Overwriting** : You could also call this *Task Updates*. Ideally, this is achieved by allowing the optional setting of a job's ID which is then used to update the same job if another is submitted with the same ID. In online tracking, tasks are continuous and almost never quite end. As such, updating a task/job with current status/data is a more feasible option.
 
@@ -79,10 +79,14 @@ This wrapper introduces:
 This surely makes the awesome firebase-queue is even better! No?
 
 ## Remember to Fire Up Your Server
-If you are planning to use delayed tasks, then remember to start your server (```server.js```). This feature is missing in *firebase-queue* and the best best way I could think of implementing it is via redis ```EXPIRY``` command and using *keyspace notifications* to trigger the inserts. So, it goes without saying that you need a server/process of sorts running to subscribe to the redis nitifications. Fire it up, probably use *PM2* to ensure it keeps running.
+If you are planning to use delayed tasks, then remember to start your server (```server.js```). This feature is missing in *firebase-queue* and the best way I could think of implementing it is via redis ```EXPIRY``` command and using *keyspace notifications* to trigger the inserts. So, it goes without saying that you need a server/process of sorts running to subscribe to the redis notifications. Fire it up, probably use *PM2* to ensure it keeps running.
+
+When staring the server, note that the first argument you supply will act as the configuration directory path. Example: ```node server.js "./PATH"```.
+
+You can copy the server file and run it from wherever else you desire (so long as you have its dependencies installed).
 
 ## One Last thing...that Configuration
-There is a *config* folder within *kazi-firebase* which you shoud ensure contains two files:
+There is a *config* folder within *kazi-firebase* which you should ensure contains two files:
 - ***firebase.json*** : The file that contains your firebase authentication details from firebase.
 - ***redis.json*** : Redis Configuration file.
 

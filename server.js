@@ -4,8 +4,10 @@ const Queue = require('firebase-queue');
 const firebase = require('firebase');
 const path = require('path');
 
-var redisDefaultoptions = require(path.join(__dirname,'config','redis.json'));
-var firebaseConfig = path.join(__dirname,'config','firebase.json');
+const config_path = process.argv[2] || path.join(__dirname,'config');
+
+var redisDefaultoptions = require(path.join(config_path,'redis.json'));
+var firebaseConfig = path.join(config_path,'firebase.json');
 
 const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
 client.select(redisDefaultoptions.redisDB);
