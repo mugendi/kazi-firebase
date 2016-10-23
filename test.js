@@ -1,5 +1,5 @@
 //jshint -W104
-const kazi = require('./index')('./config/firebase.json');
+const kazi = require('./index')();
 
 process.ppid = 637;
 
@@ -10,16 +10,16 @@ var queue = 'kazi';
 //jobs to schedule
 var jobs = [
   {
-    id: 1, //job has a defined ID
-    delay : 10, //job will be delayed for 90 seconds...
+    id: 1, //job has a defined ID. If this field is missing, one will be auto-generated
+    delay : 30, //job will be delayed for 30 seconds... (this property is optional)
+    data : {'id': 36535,'foo': 'bar'} //every job must have a data Property, which must be an object
+  },
+  {
+    id: 'job-ID', //Job Ids can either be numerals or strings
     data : {'id': 36535,'foo': 'bar'}
   },
   {
-    id: 2,
-    data : {'id': 36535,'foo': 'bar'}
-  },
-  {
-    queue: 'special-jobs',
+    queue: 'special-jobs', //you can programatically determine the queue that you want a job to be placed in...
     data : {'id': 36535,'foo': 'bar'}
   }
 ];
@@ -31,7 +31,7 @@ kazi.schedule(jobs, queue,  function(){
   console.log('Scheduling Finished!');
 });
 
-/*
+
 //run tasks
 kazi.run( queue, function(data, progress, resolve, reject) {
 
@@ -46,5 +46,3 @@ kazi.run( queue, function(data, progress, resolve, reject) {
   }, 10000);
 
 });
-
-*/

@@ -45,6 +45,12 @@ subscriber.select(redisDefaultoptions.redisDB);
           //set ref
           var ref = firebase.database().ref( queue + '/tasks' );
 
+          //add job metadata
+          job.meta = {
+              queue : queue,
+              updated : new Date().getTime()
+            };
+
           //create job with or without given ID
           if(job.hasOwnProperty('id')){
 

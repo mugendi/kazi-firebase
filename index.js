@@ -71,6 +71,10 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
   //add all jobs...
   async.eachLimit(arrify(jobs), 1, function(job, next){
 
+    if(!job.hasOwnProperty('data') || typeof job.data !== 'object'){
+      throw new Error("Job must contain a 'data' key which must be an object!");
+    }
+
     //change queue if set..
     queue = job.queue || queue;
     //delete queue
@@ -79,7 +83,7 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
     var ref = firebase.database().ref( queue + '/tasks' );
 
     //if job has a delay...
-    if(job.hasOwnProperty('delay')){
+    if(job.hasOwnProperty('delay') && /^[0-9\.]+$/.test(job.delay)){
       //
       delayJob(job, queue, function(err,res){
         // console.log(job)
@@ -97,7 +101,7 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
 
       // console.log(job);
       //create job with or without given ID
-      if(job.hasOwnProperty('id')){
+      if(job.hasOwnProperty('id') && (typeof job.id == 'number' || typeof job.id == 'string') ){
 
         var r = ref.child(job.id);
         delete job.id;
