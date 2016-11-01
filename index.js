@@ -10,6 +10,9 @@ const md5 = require('md5');
 const path = require('path');
 
 
+var client = {};
+var redisDefaultoptions = {};
+
 
 
 var kazi_server = {};
@@ -19,8 +22,11 @@ var kazi = function (config_path){
 
   config_path = config_path || path.join(__dirname,'config');
 
-  const redisDefaultoptions = require(path.join( config_path,'redis.json'));
-  const client = redis.createClient(redisDefaultoptions.redisPort, redisDefaultoptions.redisIP );
+  redisDefaultoptions = require(path.join( config_path,'redis.json'));
+  client = redis.createClient(
+    redisDefaultoptions.redisPort,
+    redisDefaultoptions.redisIP
+  );
   client.select(redisDefaultoptions.redisDB);
   var firebaseConfig = path.join( config_path,'firebase.json');
 
@@ -53,15 +59,22 @@ var kazi = function (config_path){
     throw new Error ( 'Config File must be of JSON type');
   }
 
+
+
   //initialize app
-  firebase.initializeApp({
-    serviceAccount: firebaseConfig, //JSON File
-    databaseURL: 'https://' + config.project_id + '.firebaseio.com' //Database URL
-  });
+  if(firebase.apps.length == 0) {
+    firebase.initializeApp({
+      serviceAccount: firebaseConfig, //JSON File
+      databaseURL: 'https://' + config.project_id + '.firebaseio.com' //Database URL
+    });
+  }
 
   return self;
 
 };
+
+
+
 
 
 //SCHEDULE Jobs
@@ -87,6 +100,8 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
     //Database Reference
     var ref = firebase.database().ref( queue + '/tasks' );
 
+    // console.log(ref);
+
     //if job has a delay...
     if(job.hasOwnProperty('delay') && /^[0-9\.]+$/.test(job.delay)){
       //
@@ -107,10 +122,11 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
       // console.log(job);
       //create job with or without given ID
       if(job.hasOwnProperty('id') && (typeof job.id == 'number' || typeof job.id == 'string') ){
-
         var r = ref.child(job.id);
+
         delete job.id;
-        r.set( job, function(){
+
+        r.set( job, function(err,res){
           //next job...
           next();
         });
@@ -130,7 +146,6 @@ kazi.prototype.schedule = function schedule(jobs, queue,  cb){
   }, cb );
 
 };
-
 
 
 
